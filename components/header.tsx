@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { useSession, signIn, signOut } from "next-auth/react"
+import { usePathname } from "next/navigation"
 import { Film, User, LogOut, Menu, X, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -13,12 +13,19 @@ import { motion, AnimatePresence } from "framer-motion"
 export default function Header() {
   const { data: session } = useSession()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
 
   const handleTopRatedClick = (e: React.MouseEvent) => {
     if (!session) {
       e.preventDefault()
       signIn()
     }
+  }
+
+  const isActivePage = (path: string) => {
+    if (path === "/" && pathname === "/") return true
+    if (path !== "/" && pathname.startsWith(path)) return true
+    return false
   }
 
   return (
@@ -51,10 +58,24 @@ export default function Header() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
+            <Link
+              href="/"
+              className={`transition-colors ${
+                isActivePage("/")
+                  ? "text-filmz-orange-light"
+                  : "text-filmz-text-secondary hover:text-filmz-orange-light"
+              }`}
+            >
+              Home
+            </Link>
             {session ? (
               <Link
                 href="/top-rated"
-                className="text-filmz-text-secondary hover:text-filmz-orange-light transition-colors"
+                className={`transition-colors ${
+                  isActivePage("/top-rated")
+                    ? "text-filmz-orange-light"
+                    : "text-filmz-text-secondary hover:text-filmz-orange-light"
+                }`}
               >
                 Top Rated
               </Link>
@@ -159,10 +180,24 @@ export default function Header() {
                 animate={{ y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
               >
+                <Link
+                  href="/"
+                  className={`transition-colors ${
+                    isActivePage("/")
+                      ? "text-filmz-orange-light"
+                      : "text-filmz-text-secondary hover:text-filmz-orange-light"
+                  }`}
+                >
+                  Home
+                </Link>
                 {session ? (
                   <Link
                     href="/top-rated"
-                    className="text-filmz-text-secondary hover:text-filmz-orange-light transition-colors"
+                    className={`transition-colors ${
+                      isActivePage("/top-rated")
+                        ? "text-filmz-orange-light"
+                        : "text-filmz-text-secondary hover:text-filmz-orange-light"
+                    }`}
                   >
                     Top Rated
                   </Link>

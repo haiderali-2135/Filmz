@@ -63,6 +63,23 @@ export const tmdbService = {
     return response.json()
   },
 
+  async getRelatedMovies(id: number): Promise<Movie[]> {
+    const response = await fetch(`${TMDB_BASE_URL}/movie/${id}/recommendations?language=en-US&page=1`, { headers })
+
+    if (!response.ok) {
+      // Fallback to similar movies if recommendations fail
+      const similarResponse = await fetch(`${TMDB_BASE_URL}/movie/${id}/similar?language=en-US&page=1`, { headers })
+      if (!similarResponse.ok) {
+        throw new Error("Failed to fetch related movies")
+      }
+      const data = await similarResponse.json()
+      return data.results.slice(0, 10)
+    }
+
+    const data = await response.json()
+    return data.results.slice(0, 10)
+  },
+
   async searchMovies(query: string): Promise<Movie[]> {
     const response = await fetch(
       `${TMDB_BASE_URL}/search/movie?language=en-US&query=${encodeURIComponent(query)}&page=1`,

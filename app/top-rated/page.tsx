@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Crown, Star, Lock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import Footer from "@/components/footer"
 
 export default function TopRatedPage() {
   const { data: session, status } = useSession()
@@ -260,6 +261,7 @@ export default function TopRatedPage() {
           )}
         </AnimatePresence>
       </main>
+      <Footer />
     </div>
   )
 }

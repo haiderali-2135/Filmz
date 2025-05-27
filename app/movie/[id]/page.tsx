@@ -6,23 +6,29 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Star, Calendar, Clock, Users } from "lucide-react"
 import Header from "@/components/header"
+import Footer from "@/components/footer"
+import MovieCard from "@/components/movie-card"
+import ReviewSection from "@/components/review-section"
 import Loading from "@/components/loading"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { motion } from "framer-motion"
-import type { MovieDetails } from "@/lib/tmdb"
+import { motion, AnimatePresence } from "framer-motion"
+import type { MovieDetails, Movie } from "@/lib/tmdb"
 
 export default function MovieDetailsPage() {
   const params = useParams()
   const movieId = params.id as string
   const [movie, setMovie] = useState<MovieDetails | null>(null)
+  const [relatedMovies, setRelatedMovies] = useState<Movie[]>([])
   const [loading, setLoading] = useState(true)
+  const [relatedLoading, setRelatedLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (movieId) {
       fetchMovieDetails()
+      fetchRelatedMovies()
     }
   }, [movieId])
 
@@ -46,11 +52,28 @@ export default function MovieDetailsPage() {
     }
   }
 
+  const fetchRelatedMovies = async () => {
+    try {
+      setRelatedLoading(true)
+      const response = await fetch(`/api/movies/${movieId}/related`)
+
+      if (response.ok) {
+        const data = await response.json()
+        setRelatedMovies(data)
+      }
+    } catch (err) {
+      console.error("Error fetching related movies:", err)
+    } finally {
+      setRelatedLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-filmz">
         <Header />
         <Loading message="Loading movie details..." />
+        <Footer />
       </div>
     )
   }
@@ -70,6 +93,7 @@ export default function MovieDetailsPage() {
             </Button>
           </Link>
         </div>
+        <Footer />
       </div>
     )
   }
@@ -242,7 +266,42 @@ export default function MovieDetailsPage() {
             </motion.div>
           </motion.div>
         </div>
+
+        {/* Reviews Section */}
+        <ReviewSection movieId={Number.parseInt(movieId)} />
+
+        {/* Related Movies */}
+        <AnimatePresence>
+          {relatedMovies.length > 0 && (
+            <motion.section
+              className="mt-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border mb-8">
+                <h2 className="text-2xl font-bold text-filmz-text-primary">Related Movies</h2>
+                <p className="text-filmz-text-secondary mt-2">Movies you might also enjoy</p>
+              </div>
+
+              {relatedLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-filmz-orange mx-auto"></div>
+                  <p className="text-filmz-text-secondary mt-2">Loading related movies...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                  {relatedMovies.map((relatedMovie, index) => (
+                    <MovieCard key={relatedMovie.id} movie={relatedMovie} index={index} />
+                  ))}
+                </div>
+              )}
+            </motion.section>
+          )}
+        </AnimatePresence>
       </div>
+
+      <Footer />
     </div>
   )
 }

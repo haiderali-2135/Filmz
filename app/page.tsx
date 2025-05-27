@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Header from "@/components/header"
+import Footer from "@/components/footer"
 import SearchSection from "@/components/search-section"
 import MovieCard from "@/components/movie-card"
 import Loading from "@/components/loading"
@@ -51,11 +52,15 @@ export default function HomePage() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
     fetchPopularMovies(page)
-    // Scroll to top of movies section
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults(null)
+      return
+    }
+
     try {
       setIsSearching(true)
       setError(null)
@@ -73,7 +78,7 @@ export default function HomePage() {
     } finally {
       setIsSearching(false)
     }
-  }
+  }, [])
 
   const displayedMovies = searchResults || movies
   const isShowingSearchResults = searchResults !== null
@@ -108,15 +113,14 @@ export default function HomePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  Explore the latest and most popular movies. Find your next favorite film with detailed information and
-                  ratings.
+                  Explore popular movies and share your reviews with the community.
                 </motion.p>
               </div>
             </motion.section>
           )}
         </AnimatePresence>
 
-        {/* Search Section - Always visible */}
+        {/* Search Section */}
         <SearchSection onSearch={handleSearch} isSearching={isSearching} />
 
         {/* Search Results Header */}
@@ -168,7 +172,7 @@ export default function HomePage() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Loading message="Loading popular movies..." />
+              <Loading message="Loading movies..." />
             </motion.div>
           )}
         </AnimatePresence>
@@ -189,15 +193,8 @@ export default function HomePage() {
                 transition={{ duration: 0.5 }}
               >
                 <h2 className="text-2xl font-bold text-filmz-text-primary">
-                  {isShowingSearchResults
-                    ? `Found ${displayedMovies.length} movies`
-                    : `Popular Movies (${totalResults.toLocaleString()} total)`}
+                  {isShowingSearchResults ? `Found ${displayedMovies.length} movies` : `Popular Movies`}
                 </h2>
-                {!isShowingSearchResults && (
-                  <p className="text-filmz-text-secondary mt-2">
-                    Page {currentPage} of {totalPages} • Showing {movies.length} movies
-                  </p>
-                )}
               </motion.div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {displayedMovies.map((movie, index) => (
@@ -205,7 +202,7 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* Pagination - Only show for popular movies, not search results */}
+              {/* Pagination - Only show for popular movies */}
               {!isShowingSearchResults && (
                 <Pagination
                   currentPage={currentPage}
@@ -241,6 +238,8 @@ export default function HomePage() {
           )}
         </AnimatePresence>
       </main>
+
+      <Footer />
     </div>
   )
 }
