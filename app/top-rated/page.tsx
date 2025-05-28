@@ -4,13 +4,13 @@ import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Header from "@/components/header"
-import MediaSelector from "@/components/media-selector"
+import SimpleMediaSelector from "@/components/simple-media-selector"
 import MediaCard from "@/components/media-card"
 import Loading from "@/components/loading"
 import Pagination from "@/components/pagination"
-import type { Movie, TVShow, MediaType, MovieCategory, TVCategory } from "@/lib/tmdb"
+import type { Movie, TVShow, MediaType } from "@/lib/tmdb"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Crown, Star, Lock } from "lucide-react"
+import { AlertCircle, Crown, Lock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import Footer from "@/components/footer"
@@ -25,7 +25,6 @@ export default function TopRatedPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
   const [selectedMediaType, setSelectedMediaType] = useState<MediaType>("movie")
-  const [selectedCategory, setSelectedCategory] = useState<MovieCategory | TVCategory>("top_rated")
 
   useEffect(() => {
     if (status === "loading") return // Still loading session
@@ -35,14 +34,15 @@ export default function TopRatedPage() {
       return
     }
 
-    fetchMedia(selectedMediaType, selectedCategory, 1)
-  }, [session, status, router, selectedMediaType, selectedCategory])
+    fetchMedia(selectedMediaType, currentPage)
+  }, [session, status, router, selectedMediaType, currentPage])
 
-  const fetchMedia = async (mediaType: MediaType, category: MovieCategory | TVCategory, page: number) => {
+  const fetchMedia = async (mediaType: MediaType, page: number) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/media?type=${mediaType}&category=${category}&page=${page}`)
+      // Fix: Use the correct API endpoint path with the media type and category
+      const response = await fetch(`/api/media?type=${mediaType}&category=top_rated&page=${page}`)
 
       if (response.status === 401) {
         router.push("/auth/signin")
@@ -50,7 +50,7 @@ export default function TopRatedPage() {
       }
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch ${mediaType} ${category}`)
+        throw new Error(`Failed to fetch top-rated ${mediaType}`)
       }
 
       const data = await response.json()
@@ -68,49 +68,20 @@ export default function TopRatedPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    fetchMedia(selectedMediaType, selectedCategory, page)
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const handleMediaTypeChange = (mediaType: MediaType) => {
     setSelectedMediaType(mediaType)
     setCurrentPage(1)
-    // Reset to appropriate default category
-    if (mediaType === "movie") {
-      setSelectedCategory("top_rated")
-    } else {
-      setSelectedCategory("top_rated")
-    }
-  }
-
-  const handleCategoryChange = (category: MovieCategory | TVCategory) => {
-    setSelectedCategory(category)
-    setCurrentPage(1)
   }
 
   const getTitle = () => {
-    const mediaTypeLabel = selectedMediaType === "movie" ? "Movies" : "TV Shows"
-    const categoryLabels = {
-      popular: "Popular",
-      top_rated: "Top Rated",
-      now_playing: "Now Playing",
-      upcoming: "Upcoming",
-      on_the_air: "On The Air",
-      airing_today: "Airing Today",
-    }
-    return `${categoryLabels[selectedCategory as keyof typeof categoryLabels]} ${mediaTypeLabel}`
+    return `Top Rated ${selectedMediaType === "movie" ? "Movies" : "TV Shows"}`
   }
 
   const getDescription = () => {
-    const descriptions = {
-      popular: "The most popular content right now",
-      top_rated: "The highest-rated content of all time",
-      now_playing: "Currently playing in theaters",
-      upcoming: "Coming soon to theaters",
-      on_the_air: "Currently airing on TV",
-      airing_today: "Shows airing today",
-    }
-    return descriptions[selectedCategory as keyof typeof descriptions]
+    return `The highest-rated ${selectedMediaType === "movie" ? "films" : "shows"} of all time`
   }
 
   // Show loading while checking authentication
@@ -173,49 +144,15 @@ export default function TopRatedPage() {
             >
               <Crown className="h-12 w-12 text-filmz-orange-light mr-4" />
               <h1 className="text-4xl md:text-6xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-                Premium Collection
+                Top Rated
               </h1>
               <Crown className="h-12 w-12 text-filmz-orange-light ml-4" />
             </motion.div>
-            <motion.p
-              className="text-xl text-filmz-text-secondary max-w-2xl mx-auto leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              Exclusive access to premium movie and TV show collections. Discover the highest-rated content and trending
-              favorites.
-            </motion.p>
           </div>
         </motion.section>
 
-        {/* Welcome Message */}
-        <motion.div
-          className="mb-8 bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Star className="h-6 w-6 text-filmz-orange-light" />
-              <div>
-                <h2 className="text-lg font-semibold text-filmz-text-primary">
-                  Welcome, {session.user?.name || session.user?.email}!
-                </h2>
-                <p className="text-filmz-text-secondary">Enjoy our exclusive premium movie and TV show collections</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
         {/* Media Selector */}
-        <MediaSelector
-          selectedMediaType={selectedMediaType}
-          selectedCategory={selectedCategory}
-          onMediaTypeChange={handleMediaTypeChange}
-          onCategoryChange={handleCategoryChange}
-        />
+        <SimpleMediaSelector selectedMediaType={selectedMediaType} onMediaTypeChange={handleMediaTypeChange} />
 
         {/* Error Message */}
         <AnimatePresence>
@@ -303,7 +240,7 @@ export default function TopRatedPage() {
               <Crown className="h-16 w-16 text-filmz-orange mx-auto mb-4" />
               <p className="text-xl text-filmz-text-secondary mb-4">No content available at the moment.</p>
               <Button
-                onClick={() => fetchMedia(selectedMediaType, selectedCategory, 1)}
+                onClick={() => fetchMedia(selectedMediaType, 1)}
                 className="bg-filmz-orange hover:bg-filmz-orange-hover text-white"
               >
                 Try Again

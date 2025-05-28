@@ -7,62 +7,62 @@ import Link from "next/link"
 import { ArrowLeft, Star, Calendar, Clock, Users } from "lucide-react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
-import MovieCard from "@/components/movie-card"
+import MediaCard from "@/components/media-card"
 import ReviewSection from "@/components/review-section"
 import Loading from "@/components/loading"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { motion, AnimatePresence } from "framer-motion"
-import type { MovieDetails, Movie } from "@/lib/tmdb"
+import type { TVShowDetails, TVShow } from "@/lib/tmdb"
 
-export default function MovieDetailsPage() {
+export default function TVShowDetailsPage() {
   const params = useParams()
-  const movieId = params.id as string
-  const [movie, setMovie] = useState<MovieDetails | null>(null)
-  const [relatedMovies, setRelatedMovies] = useState<Movie[]>([])
+  const showId = params.id as string
+  const [show, setShow] = useState<TVShowDetails | null>(null)
+  const [relatedShows, setRelatedShows] = useState<TVShow[]>([])
   const [loading, setLoading] = useState(true)
   const [relatedLoading, setRelatedLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (movieId) {
-      fetchMovieDetails()
-      fetchRelatedMovies()
+    if (showId) {
+      fetchShowDetails()
+      fetchRelatedShows()
     }
-  }, [movieId])
+  }, [showId])
 
-  const fetchMovieDetails = async () => {
+  const fetchShowDetails = async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/movies/${movieId}`)
+      const response = await fetch(`/api/tv/${showId}`)
 
       if (!response.ok) {
-        throw new Error("Failed to fetch movie details")
+        throw new Error("Failed to fetch TV show details")
       }
 
       const data = await response.json()
-      setMovie(data)
+      setShow(data)
     } catch (err) {
-      setError("Failed to load movie details. Please try again later.")
-      console.error("Error fetching movie details:", err)
+      setError("Failed to load TV show details. Please try again later.")
+      console.error("Error fetching TV show details:", err)
     } finally {
       setLoading(false)
     }
   }
 
-  const fetchRelatedMovies = async () => {
+  const fetchRelatedShows = async () => {
     try {
       setRelatedLoading(true)
-      const response = await fetch(`/api/movies/${movieId}/related`)
+      const response = await fetch(`/api/tv/${showId}/related`)
 
       if (response.ok) {
         const data = await response.json()
-        setRelatedMovies(data)
+        setRelatedShows(data)
       }
     } catch (err) {
-      console.error("Error fetching related movies:", err)
+      console.error("Error fetching related TV shows:", err)
     } finally {
       setRelatedLoading(false)
     }
@@ -72,19 +72,19 @@ export default function MovieDetailsPage() {
     return (
       <div className="min-h-screen bg-gradient-filmz">
         <Header />
-        <Loading message="Loading movie details..." />
+        <Loading message="Loading TV show details..." />
         <Footer />
       </div>
     )
   }
 
-  if (error || !movie) {
+  if (error || !show) {
     return (
       <div className="min-h-screen bg-gradient-filmz">
         <Header />
         <div className="container mx-auto px-4 py-8">
           <Alert className="bg-red-50 border-red-200 mb-8">
-            <AlertDescription className="text-red-700">{error || "Movie not found"}</AlertDescription>
+            <AlertDescription className="text-red-700">{error || "TV show not found"}</AlertDescription>
           </Alert>
           <Link href="/">
             <Button variant="outline" className="border-filmz-border text-filmz-text-primary hover:bg-filmz-lilac/20">
@@ -98,15 +98,15 @@ export default function MovieDetailsPage() {
     )
   }
 
-  const posterUrl = movie.poster_path
-    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+  const posterUrl = show.poster_path
+    ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
     : "/placeholder.svg?height=750&width=500"
 
-  const backdropUrl = movie.backdrop_path
-    ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`
+  const backdropUrl = show.backdrop_path
+    ? `https://image.tmdb.org/t/p/w1280${show.backdrop_path}`
     : "/placeholder.svg?height=720&width=1280"
 
-  const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : "N/A"
+  const firstAirYear = show.first_air_date ? new Date(show.first_air_date).getFullYear() : "N/A"
 
   const formatRuntime = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
@@ -125,7 +125,7 @@ export default function MovieDetailsPage() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8 }}
       >
-        <Image src={backdropUrl || "/placeholder.svg"} alt={movie.title} fill className="object-cover" priority />
+        <Image src={backdropUrl || "/placeholder.svg"} alt={show.name} fill className="object-cover" priority />
         <div className="absolute inset-0 bg-gradient-to-t from-filmz-bg-primary via-filmz-bg-primary/60 to-transparent" />
       </motion.div>
 
@@ -139,11 +139,11 @@ export default function MovieDetailsPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <div className="relative w-64 h-96 mx-auto md:mx-0 rounded-lg overflow-hidden shadow-2xl border border-filmz-border">
-              <Image src={posterUrl || "/placeholder.svg"} alt={movie.title} fill className="object-cover" />
+              <Image src={posterUrl || "/placeholder.svg"} alt={show.name} fill className="object-cover" />
             </div>
           </motion.div>
 
-          {/* Movie Info */}
+          {/* Show Info */}
           <motion.div
             className="flex-1 text-center md:text-left"
             initial={{ opacity: 0, x: 50 }}
@@ -174,9 +174,9 @@ export default function MovieDetailsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
-              <h1 className="text-3xl md:text-5xl font-bold mb-4 text-filmz-text-primary">{movie.title}</h1>
+              <h1 className="text-3xl md:text-5xl font-bold mb-4 text-filmz-text-primary">{show.name}</h1>
 
-              {/* Movie Meta */}
+              {/* Show Meta */}
               <motion.div
                 className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6 text-filmz-text-secondary"
                 initial={{ opacity: 0 }}
@@ -185,32 +185,37 @@ export default function MovieDetailsPage() {
               >
                 <div className="flex items-center">
                   <Star className="h-5 w-5 mr-1 text-filmz-orange-light fill-current" />
-                  <span className="font-semibold">{movie.vote_average.toFixed(1)}</span>
-                  <span className="text-sm ml-1">({movie.vote_count} votes)</span>
+                  <span className="font-semibold">{show.vote_average.toFixed(1)}</span>
+                  <span className="text-sm ml-1">({show.vote_count} votes)</span>
                 </div>
 
                 <div className="flex items-center">
                   <Calendar className="h-5 w-5 mr-1" />
-                  <span>{releaseYear}</span>
+                  <span>{firstAirYear}</span>
                 </div>
 
-                {movie.runtime && (
+                {show.episode_run_time && show.episode_run_time.length > 0 && (
                   <div className="flex items-center">
                     <Clock className="h-5 w-5 mr-1" />
-                    <span>{formatRuntime(movie.runtime)}</span>
+                    <span>{formatRuntime(show.episode_run_time[0])} per episode</span>
                   </div>
                 )}
+
+                <div className="flex items-center">
+                  <span className="font-semibold">{show.number_of_seasons}</span>
+                  <span className="ml-1">{show.number_of_seasons === 1 ? "Season" : "Seasons"}</span>
+                </div>
               </motion.div>
 
               {/* Genres */}
-              {movie.genres && movie.genres.length > 0 && (
+              {show.genres && show.genres.length > 0 && (
                 <motion.div
                   className="flex flex-wrap gap-2 mb-6 justify-center md:justify-start"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 1.2 }}
                 >
-                  {movie.genres.map((genre, index) => (
+                  {show.genres.map((genre, index) => (
                     <motion.div
                       key={genre.id}
                       initial={{ opacity: 0, scale: 0.8 }}
@@ -232,12 +237,12 @@ export default function MovieDetailsPage() {
               >
                 <h2 className="text-2xl font-bold mb-4 text-filmz-text-primary">Overview</h2>
                 <p className="text-filmz-text-secondary text-lg leading-relaxed">
-                  {movie.overview || "No overview available."}
+                  {show.overview || "No overview available."}
                 </p>
               </motion.div>
 
               {/* Production Companies */}
-              {movie.production_companies && movie.production_companies.length > 0 && (
+              {show.production_companies && show.production_companies.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -248,7 +253,7 @@ export default function MovieDetailsPage() {
                     Production Companies
                   </h3>
                   <div className="flex flex-wrap gap-3">
-                    {movie.production_companies.map((company, index) => (
+                    {show.production_companies.map((company, index) => (
                       <motion.div
                         key={company.id}
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -268,11 +273,11 @@ export default function MovieDetailsPage() {
         </div>
 
         {/* Reviews Section */}
-        <ReviewSection movieId={Number.parseInt(movieId)} />
+        <ReviewSection movieId={Number.parseInt(showId)} />
 
-        {/* Related Movies */}
+        {/* Related Shows */}
         <AnimatePresence>
-          {relatedMovies.length > 0 && (
+          {relatedShows.length > 0 && (
             <motion.section
               className="mt-12"
               initial={{ opacity: 0, y: 20 }}
@@ -280,19 +285,19 @@ export default function MovieDetailsPage() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border mb-8">
-                <h2 className="text-2xl font-bold text-filmz-text-primary">Related Movies</h2>
-                <p className="text-filmz-text-secondary mt-2">Movies you might also enjoy</p>
+                <h2 className="text-2xl font-bold text-filmz-text-primary">Related Shows</h2>
+                <p className="text-filmz-text-secondary mt-2">Shows you might also enjoy</p>
               </div>
 
               {relatedLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-filmz-orange mx-auto"></div>
-                  <p className="text-filmz-text-secondary mt-2">Loading related movies...</p>
+                  <p className="text-filmz-text-secondary mt-2">Loading related shows...</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                  {relatedMovies.map((relatedMovie, index) => (
-                    <MovieCard key={relatedMovie.id} movie={relatedMovie} index={index} />
+                  {relatedShows.slice(0, 10).map((relatedShow, index) => (
+                    <MediaCard key={relatedShow.id} media={relatedShow} mediaType="tv" index={index} />
                   ))}
                 </div>
               )}

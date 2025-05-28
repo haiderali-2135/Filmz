@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { tmdbService, type MediaType, type MovieCategory, type TVCategory } from "@/lib/tmdb"
 
 export async function GET(request: Request) {
@@ -15,18 +17,58 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Category is required" }, { status: 400 })
   }
 
+  // Check authentication for top-rated content
+  if (category === "top_rated") {
+    const session = await getServerSession(authOptions)
+    if (!session) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
+  }
+
   try {
     let data
     if (mediaType === "movie") {
       if (!["popular", "top_rated", "now_playing", "upcoming"].includes(category)) {
         return NextResponse.json({ error: "Invalid movie category" }, { status: 400 })
       }
-      data = await tmdbService.getMoviesByCategory(category as MovieCategory, page)
+
+      switch (category) {
+        case "popular":
+          data = await tmdbService.getPopularMovies(page)
+          break
+        case "top_rated":
+          data = await tmdbService.getTopRatedMovies(page)
+          break
+        case "now_playing":
+          data = await tmdbService.getNowPlayingMovies(page)
+          break
+        case "upcoming":
+          data = await tmdbService.getUpcomingMovies(page)
+          break
+        default:
+          throw new Error(`Unknown movie category: ${category}`)
+      }
     } else {
       if (!["popular", "top_rated", "on_the_air", "airing_today"].includes(category)) {
         return NextResponse.json({ error: "Invalid TV category" }, { status: 400 })
       }
-      data = await tmdbService.getTVShowsByCategory(category as TVCategory, page)
+
+      switch (category) {
+        case "popular":
+          data = await tmdbService.getPopularTVShows(page)
+          break
+        case "top_rated":
+          data = await tmdbService.getTopRatedTVShows(page)
+          break
+        case "on_the_air":
+          data = await tmdbService.getOnTheAirTVShows(page)
+          break
+        case "airing_today":
+          data = await tmdbService.getAiringTodayTVShows(page)
+          break
+        default:
+          throw new Error(`Unknown TV category: ${category}`)
+      }
     }
 
     return NextResponse.json(data)

@@ -4,48 +4,49 @@ import { useState, useEffect, useCallback } from "react"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import SearchSection from "@/components/search-section"
-import CategorySelector from "@/components/category-selector"
-import MovieCard from "@/components/movie-card"
+import TwoLevelMediaSelector from "@/components/two-level-media-selector"
+import MediaCard from "@/components/media-card"
 import Loading from "@/components/loading"
 import Pagination from "@/components/pagination"
-import type { Movie, MovieCategory } from "@/lib/tmdb"
+import type { Movie, TVShow, MediaType, MovieCategory, TVCategory } from "@/lib/tmdb"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, TrendingUp } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
-export default function PopularMoviesPage() {
-  const [movies, setMovies] = useState<Movie[]>([])
+export default function PopularPage() {
+  const [media, setMedia] = useState<(Movie | TVShow)[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchResults, setSearchResults] = useState<Movie[] | null>(null)
+  const [searchResults, setSearchResults] = useState<(Movie | TVShow)[] | null>(null)
   const [isSearching, setIsSearching] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
-  const [selectedCategory, setSelectedCategory] = useState<MovieCategory>("popular")
+  const [selectedMediaType, setSelectedMediaType] = useState<MediaType>("movie")
+  const [selectedCategory, setSelectedCategory] = useState<MovieCategory | TVCategory>("popular")
 
   useEffect(() => {
-    fetchMoviesByCategory(selectedCategory, 1)
-  }, [selectedCategory])
+    fetchMediaByCategory(selectedMediaType, selectedCategory, 1)
+  }, [selectedMediaType, selectedCategory])
 
-  const fetchMoviesByCategory = async (category: MovieCategory, page: number) => {
+  const fetchMediaByCategory = async (mediaType: MediaType, category: MovieCategory | TVCategory, page: number) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/movies/category?category=${category}&page=${page}`)
+      const response = await fetch(`/api/media?type=${mediaType}&category=${category}&page=${page}`)
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch ${category} movies`)
+        throw new Error(`Failed to fetch ${category} ${mediaType}`)
       }
 
       const data = await response.json()
-      setMovies(data.results)
+      setMedia(data.results)
       setCurrentPage(data.page)
       setTotalPages(data.total_pages)
       setTotalResults(data.total_results)
     } catch (err) {
-      setError("Failed to load movies. Please try again later.")
-      console.error("Error fetching movies:", err)
+      setError("Failed to load content. Please try again later.")
+      console.error("Error fetching media:", err)
     } finally {
       setLoading(false)
     }
@@ -53,98 +54,143 @@ export default function PopularMoviesPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    fetchMoviesByCategory(selectedCategory, page)
+    fetchMediaByCategory(selectedMediaType, selectedCategory, page)
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const handleCategoryChange = (category: MovieCategory) => {
+  const handleMediaTypeChange = (mediaType: MediaType) => {
+    setSelectedMediaType(mediaType)
+    // Reset to appropriate default category
+    if (mediaType === "movie") {
+      setSelectedCategory("popular")
+    } else {
+      setSelectedCategory("popular")
+    }
+    setCurrentPage(1)
+    setSearchResults(null) // Clear search results when changing media type
+  }
+
+  const handleCategoryChange = (category: MovieCategory | TVCategory) => {
     setSelectedCategory(category)
     setCurrentPage(1)
     setSearchResults(null) // Clear search results when changing category
   }
 
-  const handleSearch = useCallback(async (query: string) => {
-    if (!query.trim()) {
-      setSearchResults(null)
-      return
-    }
-
-    try {
-      setIsSearching(true)
-      setError(null)
-      const response = await fetch(`/api/movies/search?q=${encodeURIComponent(query)}`)
-
-      if (!response.ok) {
-        throw new Error("Failed to search movies")
+  const handleSearch = useCallback(
+    async (query: string) => {
+      if (!query.trim()) {
+        setSearchResults(null)
+        return
       }
 
-      const data = await response.json()
-      setSearchResults(data)
-    } catch (err) {
-      setError("Failed to search movies. Please try again.")
-      console.error("Error searching movies:", err)
-    } finally {
-      setIsSearching(false)
-    }
-  }, [])
+      try {
+        setIsSearching(true)
+        setError(null)
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=${selectedMediaType}`)
 
-  const displayedMovies = searchResults || movies
+        if (!response.ok) {
+          throw new Error(`Failed to search ${selectedMediaType}`)
+        }
+
+        const data = await response.json()
+        setSearchResults(data)
+      } catch (err) {
+        setError(`Failed to search ${selectedMediaType}. Please try again.`)
+        console.error("Error searching:", err)
+      } finally {
+        setIsSearching(false)
+      }
+    },
+    [selectedMediaType],
+  )
+
+  const displayedMedia = searchResults || media
   const isShowingSearchResults = searchResults !== null
 
-  const getCategoryTitle = (category: MovieCategory) => {
-    const titles = {
-      popular: "Popular Movies",
-      top_rated: "Top Rated Movies",
-      now_playing: "Now Playing Movies",
-      upcoming: "Upcoming Movies",
+  const getTitle = () => {
+    const mediaTypeLabel = selectedMediaType === "movie" ? "Movies" : "TV Shows"
+    const categoryLabels = {
+      popular: "Popular",
+      now_playing: "Now Playing",
+      upcoming: "Upcoming",
+      on_the_air: "On The Air",
+      airing_today: "Airing Today",
     }
-    return titles[category]
+    return `${categoryLabels[selectedCategory as keyof typeof categoryLabels]} ${mediaTypeLabel}`
   }
 
-  const getCategoryDescription = (category: MovieCategory) => {
+  const getDescription = () => {
     const descriptions = {
-      popular: "The most popular movies right now",
-      top_rated: "The highest-rated films of all time",
-      now_playing: "Movies currently playing in theaters",
-      upcoming: "Movies coming soon to theaters",
+      popular: "The most popular content right now",
+      now_playing: "Currently playing in theaters",
+      upcoming: "Coming soon to theaters",
+      on_the_air: "Currently airing on TV",
+      airing_today: "Shows airing today",
     }
-    return descriptions[category]
+    return descriptions[selectedCategory as keyof typeof descriptions]
   }
 
   return (
     <div className="min-h-screen bg-gradient-filmz">
       <Header />
 
-      <main className="container mx-auto px-4 ">
+      <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <motion.section
-          className="text-center mb-6 "
+          className="text-center mb-8"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <div className="relative">
             <motion.div
-              className="flex items-center justify-center mb-2"
+              className="flex items-center justify-center mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               <TrendingUp className="h-12 w-12 text-filmz-orange-light mr-4" />
               <h1 className="text-4xl md:text-6xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-                Discover Movies
+                Discover
               </h1>
               <TrendingUp className="h-12 w-12 text-filmz-orange-light ml-4" />
             </motion.div>
-
           </div>
         </motion.section>
 
-         {/* Search Section */}
+        {/* Search Section */}
         <SearchSection onSearch={handleSearch} isSearching={isSearching} />
-         {/* Category Selector */}
-        <CategorySelector selectedCategory={selectedCategory} onCategoryChange={handleCategoryChange} />
-       
+
+        {/* Media Selector */}
+        <TwoLevelMediaSelector
+          selectedMediaType={selectedMediaType}
+          selectedCategory={selectedCategory}
+          onMediaTypeChange={handleMediaTypeChange}
+          onCategoryChange={handleCategoryChange}
+        />
+
+        {/* Search Results Header */}
+        <AnimatePresence>
+          {isShowingSearchResults && (
+            <motion.div
+              className="mb-8 bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2 className="text-2xl font-bold mb-2 text-filmz-text-primary">Search Results</h2>
+              <motion.button
+                onClick={() => setSearchResults(null)}
+                className="text-filmz-orange-light hover:text-filmz-orange-hover underline font-medium"
+                whileHover={{ x: -5 }}
+                transition={{ duration: 0.2 }}
+              >
+                ← Back to {getTitle()}
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Error Message */}
         <AnimatePresence>
@@ -172,23 +218,40 @@ export default function PopularMoviesPage() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Loading message="Loading movies..." />
+              <Loading message="Loading content..." />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Movies Grid */}
+        {/* Media Grid */}
         <AnimatePresence>
-          {!loading && displayedMovies.length > 0 && (
+          {!loading && displayedMedia.length > 0 && (
             <motion.section
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
             >
+              <motion.div
+                className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <h2 className="text-2xl font-bold text-filmz-text-primary">
+                  {isShowingSearchResults
+                    ? `Found ${displayedMedia.length} ${selectedMediaType === "movie" ? "movies" : "shows"}`
+                    : getTitle()}
+                </h2>
+                {!isShowingSearchResults && (
+                  <p className="text-filmz-text-secondary mt-2">
+                    {getDescription()} • Page {currentPage} of {totalPages} • Showing {media.length} items
+                  </p>
+                )}
+              </motion.div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {displayedMovies.map((movie, index) => (
-                  <MovieCard key={movie.id} movie={movie} index={index} />
+                {displayedMedia.map((item, index) => (
+                  <MediaCard key={item.id} media={item} mediaType={selectedMediaType} index={index} />
                 ))}
               </div>
 
@@ -207,7 +270,7 @@ export default function PopularMoviesPage() {
 
         {/* No Results */}
         <AnimatePresence>
-          {!loading && !isSearching && displayedMovies.length === 0 && isShowingSearchResults && (
+          {!loading && !isSearching && displayedMedia.length === 0 && isShowingSearchResults && (
             <motion.div
               className="text-center py-12 bg-white/50 backdrop-blur-sm rounded-lg border border-filmz-border"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -215,14 +278,16 @@ export default function PopularMoviesPage() {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.5 }}
             >
-              <p className="text-xl text-filmz-text-secondary mb-4">No movies found for your search.</p>
+              <p className="text-xl text-filmz-text-secondary mb-4">
+                No {selectedMediaType === "movie" ? "movies" : "shows"} found for your search.
+              </p>
               <motion.button
                 onClick={() => setSearchResults(null)}
                 className="text-filmz-orange-light hover:text-filmz-orange-hover underline font-medium"
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.2 }}
               >
-                Browse {selectedCategory} movies instead
+                Browse {selectedCategory} {selectedMediaType === "movie" ? "movies" : "shows"} instead
               </motion.button>
             </motion.div>
           )}

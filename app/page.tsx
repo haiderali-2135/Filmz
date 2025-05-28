@@ -40,6 +40,7 @@ export default function HomePage() {
       <Header />
 
       <main>
+        {/* Hero Section */}
         <motion.section
           className="relative py-20 md:py-32 overflow-hidden"
           initial={{ opacity: 0 }}
@@ -59,7 +60,7 @@ export default function HomePage() {
                 >
                   <Film className="h-16 w-16 text-filmz-orange-light mr-4" />
                 </motion.div>
-                <h1 className="text-5xl md:text-7xl font-bold bg-gradient-hero bg-clip-text text-transparent mx-4">Filmz</h1>
+                <h1 className="text-5xl md:text-7xl font-bold bg-gradient-hero bg-clip-text text-transparent">Filmz</h1>
                 <motion.div
                   animate={{ rotate: -360 }}
                   transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
@@ -75,7 +76,7 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              Your ultimate destination for discovering amazing films and shows, sharing reviews, and connecting with fellow movie
+              Your ultimate destination for discovering amazing films, sharing reviews, and connecting with fellow movie
               enthusiasts.
             </motion.p>
 
@@ -112,7 +113,7 @@ export default function HomePage() {
 
             {/* Stats */}
             <motion.div
-              className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.8 }}
@@ -127,11 +128,11 @@ export default function HomePage() {
                 <h3 className="text-2xl font-bold text-filmz-text-primary mb-2">Reviews</h3>
                 <p className="text-filmz-text-secondary">Share your thoughts and ratings</p>
               </div>
-              {/* <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-filmz-border">
+              <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-filmz-border">
                 <Users className="h-8 w-8 text-filmz-orange-light mx-auto mb-3" />
                 <h3 className="text-2xl font-bold text-filmz-text-primary mb-2">Community</h3>
                 <p className="text-filmz-text-secondary">Connect with fellow film lovers</p>
-              </div> */}
+              </div>
             </motion.div>
           </div>
 

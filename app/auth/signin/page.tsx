@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { Film, Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -21,6 +22,7 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { status, data: session } = useSession()
 
   const signInForm = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
@@ -38,6 +40,36 @@ export default function AuthPage() {
       password: "",
     },
   })
+
+  useEffect(() => {
+    // Redirect if user is already signed in
+    if (status === "authenticated" && session) {
+      router.push("/")
+    }
+  }, [session, status, router])
+
+  // Show loading while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gradient-filmz flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-filmz-orange mx-auto mb-4"></div>
+          <p className="text-filmz-text-secondary">Checking authentication...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect if already authenticated (this prevents flash of sign-in form)
+  if (status === "authenticated" && session) {
+    return (
+      <div className="min-h-screen bg-gradient-filmz flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-filmz-text-secondary">Redirecting...</p>
+        </div>
+      </div>
+    )
+  }
 
   const onSignIn = async (data: SignInInput) => {
     setIsLoading(true)

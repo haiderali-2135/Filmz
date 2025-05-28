@@ -147,36 +147,6 @@ export const tmdbService = {
     return response.json()
   },
 
-  async getMoviesByCategory(category: MovieCategory, page = 1): Promise<MoviesResponse> {
-    switch (category) {
-      case "popular":
-        return this.getPopularMovies(page)
-      case "top_rated":
-        return this.getTopRatedMovies(page)
-      case "now_playing":
-        return this.getNowPlayingMovies(page)
-      case "upcoming":
-        return this.getUpcomingMovies(page)
-      default:
-        throw new Error(`Unknown movie category: ${category}`)
-    }
-  },
-
-  async getTVShowsByCategory(category: TVCategory, page = 1): Promise<TVShowsResponse> {
-    switch (category) {
-      case "popular":
-        return this.getPopularTVShows(page)
-      case "top_rated":
-        return this.getTopRatedTVShows(page)
-      case "on_the_air":
-        return this.getOnTheAirTVShows(page)
-      case "airing_today":
-        return this.getAiringTodayTVShows(page)
-      default:
-        throw new Error(`Unknown TV category: ${category}`)
-    }
-  },
-
   async getMovieDetails(id: number): Promise<MovieDetails> {
     const response = await fetch(`${TMDB_BASE_URL}/movie/${id}?language=en-US`, { headers })
 
