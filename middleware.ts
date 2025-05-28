@@ -7,10 +7,18 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        // Check if user is trying to access top-rated page
-        if (req.nextUrl.pathname.startsWith("/top-rated")) {
+        const { pathname } = req.nextUrl
+
+        // Protect top-rated page - require authentication
+        if (pathname.startsWith("/top-rated")) {
           return !!token // Only allow if user has a valid token
         }
+
+        // Protect sign-in page - redirect if already authenticated
+        if (pathname.startsWith("/auth/signin")) {
+          return !token // Only allow if user is NOT authenticated
+        }
+
         return true // Allow access to other pages
       },
     },
@@ -18,5 +26,5 @@ export default withAuth(
 )
 
 export const config = {
-  matcher: ["/top-rated/:path*"],
+  matcher: ["/top-rated/:path*", "/auth/signin"],
 }

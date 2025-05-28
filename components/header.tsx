@@ -68,6 +68,16 @@ export default function Header() {
             >
               Home
             </Link>
+            <Link
+              href="/popular"
+              className={`transition-colors ${
+                isActivePage("/popular")
+                  ? "text-filmz-orange-light"
+                  : "text-filmz-text-secondary hover:text-filmz-orange-light"
+              }`}
+            >
+              Popular
+            </Link>
             {session ? (
               <Link
                 href="/top-rated"
@@ -187,8 +197,20 @@ export default function Header() {
                       ? "text-filmz-orange-light"
                       : "text-filmz-text-secondary hover:text-filmz-orange-light"
                   }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Home
+                </Link>
+                <Link
+                  href="/popular"
+                  className={`transition-colors ${
+                    isActivePage("/popular")
+                      ? "text-filmz-orange-light"
+                      : "text-filmz-text-secondary hover:text-filmz-orange-light"
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Popular
                 </Link>
                 {session ? (
                   <Link
@@ -198,6 +220,7 @@ export default function Header() {
                         ? "text-filmz-orange-light"
                         : "text-filmz-text-secondary hover:text-filmz-orange-light"
                     }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Top Rated
                   </Link>

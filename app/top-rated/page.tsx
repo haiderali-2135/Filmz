@@ -4,10 +4,11 @@ import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Header from "@/components/header"
-import MovieCard from "@/components/movie-card"
+import MediaSelector from "@/components/media-selector"
+import MediaCard from "@/components/media-card"
 import Loading from "@/components/loading"
 import Pagination from "@/components/pagination"
-import type { Movie } from "@/lib/tmdb"
+import type { Movie, TVShow, MediaType, MovieCategory, TVCategory } from "@/lib/tmdb"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Crown, Star, Lock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -17,12 +18,14 @@ import Footer from "@/components/footer"
 export default function TopRatedPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [movies, setMovies] = useState<Movie[]>([])
+  const [media, setMedia] = useState<(Movie | TVShow)[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
+  const [selectedMediaType, setSelectedMediaType] = useState<MediaType>("movie")
+  const [selectedCategory, setSelectedCategory] = useState<MovieCategory | TVCategory>("top_rated")
 
   useEffect(() => {
     if (status === "loading") return // Still loading session
@@ -32,14 +35,14 @@ export default function TopRatedPage() {
       return
     }
 
-    fetchTopRatedMovies(1)
-  }, [session, status, router])
+    fetchMedia(selectedMediaType, selectedCategory, 1)
+  }, [session, status, router, selectedMediaType, selectedCategory])
 
-  const fetchTopRatedMovies = async (page: number) => {
+  const fetchMedia = async (mediaType: MediaType, category: MovieCategory | TVCategory, page: number) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/movies/top-rated?page=${page}`)
+      const response = await fetch(`/api/media?type=${mediaType}&category=${category}&page=${page}`)
 
       if (response.status === 401) {
         router.push("/auth/signin")
@@ -47,17 +50,17 @@ export default function TopRatedPage() {
       }
 
       if (!response.ok) {
-        throw new Error("Failed to fetch top rated movies")
+        throw new Error(`Failed to fetch ${mediaType} ${category}`)
       }
 
       const data = await response.json()
-      setMovies(data.results)
+      setMedia(data.results)
       setCurrentPage(data.page)
       setTotalPages(data.total_pages)
       setTotalResults(data.total_results)
     } catch (err) {
-      setError("Failed to load top rated movies. Please try again later.")
-      console.error("Error fetching top rated movies:", err)
+      setError("Failed to load content. Please try again later.")
+      console.error("Error fetching media:", err)
     } finally {
       setLoading(false)
     }
@@ -65,9 +68,49 @@ export default function TopRatedPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    fetchTopRatedMovies(page)
-    // Scroll to top of movies section
+    fetchMedia(selectedMediaType, selectedCategory, page)
     window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  const handleMediaTypeChange = (mediaType: MediaType) => {
+    setSelectedMediaType(mediaType)
+    setCurrentPage(1)
+    // Reset to appropriate default category
+    if (mediaType === "movie") {
+      setSelectedCategory("top_rated")
+    } else {
+      setSelectedCategory("top_rated")
+    }
+  }
+
+  const handleCategoryChange = (category: MovieCategory | TVCategory) => {
+    setSelectedCategory(category)
+    setCurrentPage(1)
+  }
+
+  const getTitle = () => {
+    const mediaTypeLabel = selectedMediaType === "movie" ? "Movies" : "TV Shows"
+    const categoryLabels = {
+      popular: "Popular",
+      top_rated: "Top Rated",
+      now_playing: "Now Playing",
+      upcoming: "Upcoming",
+      on_the_air: "On The Air",
+      airing_today: "Airing Today",
+    }
+    return `${categoryLabels[selectedCategory as keyof typeof categoryLabels]} ${mediaTypeLabel}`
+  }
+
+  const getDescription = () => {
+    const descriptions = {
+      popular: "The most popular content right now",
+      top_rated: "The highest-rated content of all time",
+      now_playing: "Currently playing in theaters",
+      upcoming: "Coming soon to theaters",
+      on_the_air: "Currently airing on TV",
+      airing_today: "Shows airing today",
+    }
+    return descriptions[selectedCategory as keyof typeof descriptions]
   }
 
   // Show loading while checking authentication
@@ -95,7 +138,7 @@ export default function TopRatedPage() {
             <Lock className="h-16 w-16 text-filmz-orange mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-filmz-text-primary mb-4">Authentication Required</h1>
             <p className="text-filmz-text-secondary mb-6">
-              You need to sign in to access the top rated movies collection.
+              You need to sign in to access the premium movie and TV show collections.
             </p>
             <Button
               onClick={() => router.push("/auth/signin")}
@@ -130,7 +173,7 @@ export default function TopRatedPage() {
             >
               <Crown className="h-12 w-12 text-filmz-orange-light mr-4" />
               <h1 className="text-4xl md:text-6xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-                Top Rated Films
+                Premium Collection
               </h1>
               <Crown className="h-12 w-12 text-filmz-orange-light ml-4" />
             </motion.div>
@@ -140,7 +183,8 @@ export default function TopRatedPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              Discover the highest-rated movies of all time. Exclusive access for our signed-in members.
+              Exclusive access to premium movie and TV show collections. Discover the highest-rated content and trending
+              favorites.
             </motion.p>
           </div>
         </motion.section>
@@ -159,11 +203,19 @@ export default function TopRatedPage() {
                 <h2 className="text-lg font-semibold text-filmz-text-primary">
                   Welcome, {session.user?.name || session.user?.email}!
                 </h2>
-                <p className="text-filmz-text-secondary">Enjoy our exclusive collection of top-rated films</p>
+                <p className="text-filmz-text-secondary">Enjoy our exclusive premium movie and TV show collections</p>
               </div>
             </div>
           </div>
         </motion.div>
+
+        {/* Media Selector */}
+        <MediaSelector
+          selectedMediaType={selectedMediaType}
+          selectedCategory={selectedCategory}
+          onMediaTypeChange={handleMediaTypeChange}
+          onCategoryChange={handleCategoryChange}
+        />
 
         {/* Error Message */}
         <AnimatePresence>
@@ -191,14 +243,14 @@ export default function TopRatedPage() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Loading message="Loading top rated movies..." />
+              <Loading message="Loading content..." />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Movies Grid */}
+        {/* Media Grid */}
         <AnimatePresence>
-          {!loading && movies.length > 0 && (
+          {!loading && media.length > 0 && (
             <motion.section
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -214,17 +266,16 @@ export default function TopRatedPage() {
                 <div className="flex items-center space-x-3">
                   <Crown className="h-6 w-6 text-filmz-orange-light" />
                   <h2 className="text-2xl font-bold text-filmz-text-primary">
-                    Top Rated Movies ({totalResults.toLocaleString()} total)
+                    {getTitle()} ({totalResults.toLocaleString()} total)
                   </h2>
                 </div>
                 <p className="text-filmz-text-secondary mt-2">
-                  The highest-rated films according to critics and audiences worldwide • Page {currentPage} of{" "}
-                  {totalPages} • Showing {movies.length} movies
+                  {getDescription()} • Page {currentPage} of {totalPages} • Showing {media.length} items
                 </p>
               </motion.div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {movies.map((movie, index) => (
-                  <MovieCard key={movie.id} movie={movie} index={index} />
+                {media.map((item, index) => (
+                  <MediaCard key={item.id} media={item} mediaType={selectedMediaType} index={index} />
                 ))}
               </div>
 
@@ -241,7 +292,7 @@ export default function TopRatedPage() {
 
         {/* No Results */}
         <AnimatePresence>
-          {!loading && movies.length === 0 && !error && (
+          {!loading && media.length === 0 && !error && (
             <motion.div
               className="text-center py-12 bg-white/50 backdrop-blur-sm rounded-lg border border-filmz-border"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -250,9 +301,9 @@ export default function TopRatedPage() {
               transition={{ duration: 0.5 }}
             >
               <Crown className="h-16 w-16 text-filmz-orange mx-auto mb-4" />
-              <p className="text-xl text-filmz-text-secondary mb-4">No top rated movies available at the moment.</p>
+              <p className="text-xl text-filmz-text-secondary mb-4">No content available at the moment.</p>
               <Button
-                onClick={() => fetchTopRatedMovies(1)}
+                onClick={() => fetchMedia(selectedMediaType, selectedCategory, 1)}
                 className="bg-filmz-orange hover:bg-filmz-orange-hover text-white"
               >
                 Try Again

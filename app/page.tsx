@@ -1,242 +1,269 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
+import Link from "next/link"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
-import SearchSection from "@/components/search-section"
 import MovieCard from "@/components/movie-card"
 import Loading from "@/components/loading"
-import Pagination from "@/components/pagination"
+import { Button } from "@/components/ui/button"
 import type { Movie } from "@/lib/tmdb"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { Film, TrendingUp, Crown, Star, ArrowRight, Play, Users } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function HomePage() {
-  const [movies, setMovies] = useState<Movie[]>([])
+  const [featuredMovies, setFeaturedMovies] = useState<Movie[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [searchResults, setSearchResults] = useState<Movie[] | null>(null)
-  const [isSearching, setIsSearching] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalResults, setTotalResults] = useState(0)
 
   useEffect(() => {
-    fetchPopularMovies(1)
+    fetchFeaturedMovies()
   }, [])
 
-  const fetchPopularMovies = async (page: number) => {
+  const fetchFeaturedMovies = async () => {
     try {
       setLoading(true)
-      setError(null)
-      const response = await fetch(`/api/movies/popular?page=${page}`)
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch movies")
+      const response = await fetch("/api/movies/popular?page=1")
+      if (response.ok) {
+        const data = await response.json()
+        // Get first 8 movies for featured section
+        setFeaturedMovies(data.results.slice(0, 8))
       }
-
-      const data = await response.json()
-      setMovies(data.results)
-      setCurrentPage(data.page)
-      setTotalPages(data.total_pages)
-      setTotalResults(data.total_results)
-    } catch (err) {
-      setError("Failed to load movies. Please try again later.")
-      console.error("Error fetching movies:", err)
+    } catch (error) {
+      console.error("Error fetching featured movies:", error)
     } finally {
       setLoading(false)
     }
   }
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    fetchPopularMovies(page)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
-  const handleSearch = useCallback(async (query: string) => {
-    if (!query.trim()) {
-      setSearchResults(null)
-      return
-    }
-
-    try {
-      setIsSearching(true)
-      setError(null)
-      const response = await fetch(`/api/movies/search?q=${encodeURIComponent(query)}`)
-
-      if (!response.ok) {
-        throw new Error("Failed to search movies")
-      }
-
-      const data = await response.json()
-      setSearchResults(data)
-    } catch (err) {
-      setError("Failed to search movies. Please try again.")
-      console.error("Error searching movies:", err)
-    } finally {
-      setIsSearching(false)
-    }
-  }, [])
-
-  const displayedMovies = searchResults || movies
-  const isShowingSearchResults = searchResults !== null
-
   return (
     <div className="min-h-screen bg-gradient-filmz">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Hero Section */}
-        <AnimatePresence>
-          {!isShowingSearchResults && (
-            <motion.section
-              className="text-center mb-12 py-16"
+      <main>
+        <motion.section
+          className="relative py-20 md:py-32 overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+        >
+          <div className="container mx-auto px-4 text-center relative z-10">
+            <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <div className="relative">
-                <motion.h1
-                  className="text-4xl md:text-6xl font-bold mb-6 p-2 bg-gradient-hero bg-clip-text text-transparent"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
+              <div className="flex items-center justify-center mb-6">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
                 >
-                  Discover Amazing Films
-                </motion.h1>
-                <motion.p
-                  className="text-xl text-filmz-text-secondary max-w-2xl mx-auto leading-relaxed"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
+                  <Film className="h-16 w-16 text-filmz-orange-light mr-4" />
+                </motion.div>
+                <h1 className="text-5xl md:text-7xl font-bold bg-gradient-hero bg-clip-text text-transparent mx-4">Filmz</h1>
+                <motion.div
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
                 >
-                  Explore popular movies and share your reviews with the community.
-                </motion.p>
+                  <Film className="h-16 w-16 text-filmz-orange-light ml-4" />
+                </motion.div>
               </div>
-            </motion.section>
-          )}
-        </AnimatePresence>
-
-        {/* Search Section */}
-        <SearchSection onSearch={handleSearch} isSearching={isSearching} />
-
-        {/* Search Results Header */}
-        <AnimatePresence>
-          {isShowingSearchResults && (
-            <motion.div
-              className="mb-8 bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl font-bold mb-2 text-filmz-text-primary">Search Results</h2>
-              <motion.button
-                onClick={() => setSearchResults(null)}
-                className="text-filmz-orange-light hover:text-filmz-orange-hover underline font-medium"
-                whileHover={{ x: -5 }}
-                transition={{ duration: 0.2 }}
-              >
-                ← Back to Popular Movies
-              </motion.button>
             </motion.div>
-          )}
-        </AnimatePresence>
 
-        {/* Error Message */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
+            <motion.p
+              className="text-2xl md:text-3xl text-filmz-text-secondary max-w-4xl mx-auto leading-relaxed mb-8"
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
             >
-              <Alert className="mb-8 bg-red-50 border-red-200">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-700">{error}</AlertDescription>
-              </Alert>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              Your ultimate destination for discovering amazing films and shows, sharing reviews, and connecting with fellow movie
+              enthusiasts.
+            </motion.p>
 
-        {/* Loading State */}
-        <AnimatePresence>
-          {loading && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
             >
-              <Loading message="Loading movies..." />
+              <Link href="/popular">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    size="lg"
+                    className="bg-filmz-orange hover:bg-filmz-orange-hover text-white text-lg px-8 py-4"
+                  >
+                    <Play className="h-5 w-5 mr-2" />
+                    Explore Movies
+                  </Button>
+                </motion.div>
+              </Link>
+              <Link href="/top-rated">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-filmz-border text-filmz-text-primary hover:bg-filmz-lilac/20 text-lg px-8 py-4"
+                  >
+                    <Crown className="h-5 w-5 mr-2" />
+                    Top Rated
+                  </Button>
+                </motion.div>
+              </Link>
             </motion.div>
-          )}
-        </AnimatePresence>
 
-        {/* Movies Grid */}
-        <AnimatePresence>
-          {!loading && displayedMovies.length > 0 && (
-            <motion.section
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
+            {/* Stats */}
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
             >
-              <motion.div
-                className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border mb-8"
+              <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-filmz-border">
+                <TrendingUp className="h-8 w-8 text-filmz-orange-light mx-auto mb-3" />
+                <h3 className="text-2xl font-bold text-filmz-text-primary mb-2">Trending</h3>
+                <p className="text-filmz-text-secondary">Discover what's popular right now</p>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-filmz-border">
+                <Star className="h-8 w-8 text-filmz-orange-light mx-auto mb-3" />
+                <h3 className="text-2xl font-bold text-filmz-text-primary mb-2">Reviews</h3>
+                <p className="text-filmz-text-secondary">Share your thoughts and ratings</p>
+              </div>
+              {/* <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-filmz-border">
+                <Users className="h-8 w-8 text-filmz-orange-light mx-auto mb-3" />
+                <h3 className="text-2xl font-bold text-filmz-text-primary mb-2">Community</h3>
+                <p className="text-filmz-text-secondary">Connect with fellow film lovers</p>
+              </div> */}
+            </motion.div>
+          </div>
+
+          {/* Background decoration */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-filmz-orange/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-filmz-lilac/20 rounded-full blur-3xl"></div>
+          </div>
+        </motion.section>
+
+        {/* Featured Movies Section */}
+        <motion.section
+          className="py-16 bg-white/30 backdrop-blur-sm"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1 }}
+        >
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <motion.h2
+                className="text-3xl md:text-4xl font-bold text-filmz-text-primary mb-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.6, delay: 1.2 }}
               >
-                <h2 className="text-2xl font-bold text-filmz-text-primary">
-                  {isShowingSearchResults ? `Found ${displayedMovies.length} movies` : `Popular Movies`}
-                </h2>
-              </motion.div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {displayedMovies.map((movie, index) => (
-                  <MovieCard key={movie.id} movie={movie} index={index} />
-                ))}
-              </div>
+                Featured Movies
+              </motion.h2>
+              <motion.p
+                className="text-xl text-filmz-text-secondary max-w-2xl mx-auto"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.4 }}
+              >
+                Check out some of the most popular movies trending right now
+              </motion.p>
+            </div>
 
-              {/* Pagination - Only show for popular movies */}
-              {!isShowingSearchResults && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  isLoading={loading}
-                />
-              )}
-            </motion.section>
-          )}
-        </AnimatePresence>
+            {loading ? (
+              <Loading message="Loading featured movies..." />
+            ) : (
+              <AnimatePresence>
+                <motion.div
+                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 1.6 }}
+                >
+                  {featuredMovies.map((movie, index) => (
+                    <MovieCard key={movie.id} movie={movie} index={index} />
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            )}
 
-        {/* No Results */}
-        <AnimatePresence>
-          {!loading && !isSearching && displayedMovies.length === 0 && isShowingSearchResults && (
             <motion.div
-              className="text-center py-12 bg-white/50 backdrop-blur-sm rounded-lg border border-filmz-border"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.5 }}
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 2 }}
             >
-              <p className="text-xl text-filmz-text-secondary mb-4">No movies found for your search.</p>
-              <motion.button
-                onClick={() => setSearchResults(null)}
-                className="text-filmz-orange-light hover:text-filmz-orange-hover underline font-medium"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                Browse popular movies instead
-              </motion.button>
+              <Link href="/popular">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button size="lg" className="bg-filmz-orange hover:bg-filmz-orange-hover text-white">
+                    View All Popular Movies
+                    <ArrowRight className="h-5 w-5 ml-2" />
+                  </Button>
+                </motion.div>
+              </Link>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </div>
+        </motion.section>
+
+        {/* Features Section */}
+        <motion.section
+          className="py-16"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 2.2 }}
+        >
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-filmz-text-primary mb-4">Why Choose Filmz?</h2>
+              <p className="text-xl text-filmz-text-secondary max-w-2xl mx-auto">
+                Everything you need to discover, explore, and share your love for movies
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <motion.div
+                className="bg-white/60 backdrop-blur-sm rounded-lg p-8 border border-filmz-border text-center"
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="bg-filmz-orange/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="h-8 w-8 text-filmz-orange-light" />
+                </div>
+                <h3 className="text-xl font-bold text-filmz-text-primary mb-3">Discover Popular Movies</h3>
+                <p className="text-filmz-text-secondary">
+                  Stay up-to-date with the latest trending and popular movies from around the world.
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="bg-white/60 backdrop-blur-sm rounded-lg p-8 border border-filmz-border text-center"
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="bg-filmz-orange/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <Star className="h-8 w-8 text-filmz-orange-light" />
+                </div>
+                <h3 className="text-xl font-bold text-filmz-text-primary mb-3">Rate & Review</h3>
+                <p className="text-filmz-text-secondary">
+                  Share your thoughts and ratings with the community. Help others discover great films.
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="bg-white/60 backdrop-blur-sm rounded-lg p-8 border border-filmz-border text-center"
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="bg-filmz-orange/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <Crown className="h-8 w-8 text-filmz-orange-light" />
+                </div>
+                <h3 className="text-xl font-bold text-filmz-text-primary mb-3">Exclusive Access</h3>
+                <p className="text-filmz-text-secondary">
+                  Sign in to access our curated collection of top-rated movies and exclusive features.
+                </p>
+              </motion.div>
+            </div>
+          </div>
+        </motion.section>
       </main>
 
       <Footer />
