@@ -22,13 +22,14 @@ export async function POST(request: Request) {
       )
     }
 
-    const { movieId, rating, comment } = validatedFields.data
+    const { mediaId, mediaType, rating, comment } = validatedFields.data
 
-    // Check if user already reviewed this movie
+    // Check if user already reviewed this media item
     const existingReview = await prisma.review.findUnique({
       where: {
-        movieId_userId: {
-          movieId,
+        mediaId_mediaType_userId: {
+          mediaId,
+          mediaType,
           userId: session.user.id,
         },
       },
@@ -51,7 +52,8 @@ export async function POST(request: Request) {
       // Create new review
       const review = await prisma.review.create({
         data: {
-          movieId,
+          mediaId,
+          mediaType,
           rating,
           comment,
           userId: session.user.id,

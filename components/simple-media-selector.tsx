@@ -24,12 +24,12 @@ const mediaTypeConfig = {
 export default function SimpleMediaSelector({ selectedMediaType, onMediaTypeChange }: SimpleMediaSelectorProps) {
   return (
     <motion.div
-      className="mb-6"
+      className=""
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-filmz-border/50 shadow-sm">
+      <div className="bg-white/0">
         <div className="flex gap-4 justify-center">
           {(["movie", "tv"] as MediaType[]).map((mediaType, index) => {
             const config = mediaTypeConfig[mediaType]
@@ -57,16 +57,6 @@ export default function SimpleMediaSelector({ selectedMediaType, onMediaTypeChan
                 >
                   <Icon className={`h-5 w-5 ${isSelected ? "text-white" : "text-filmz-orange-light"}`} />
                   <span className="font-medium text-lg">{config.label}</span>
-                  {isSelected && (
-                    <motion.div
-                      className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      ✓
-                    </motion.div>
-                  )}
                 </Button>
               </motion.div>
             )

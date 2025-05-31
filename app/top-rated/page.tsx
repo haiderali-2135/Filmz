@@ -94,43 +94,13 @@ export default function TopRatedPage() {
     )
   }
 
-  // Show access denied if not authenticated
-  if (!session) {
-    return (
-      <div className="min-h-screen bg-gradient-filmz">
-        <Header />
-        <div className="container mx-auto px-4 py-16">
-          <motion.div
-            className="max-w-md mx-auto text-center bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-filmz-border shadow-lg"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Lock className="h-16 w-16 text-filmz-orange mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-filmz-text-primary mb-4">Authentication Required</h1>
-            <p className="text-filmz-text-secondary mb-6">
-              You need to sign in to access the premium movie and TV show collections.
-            </p>
-            <Button
-              onClick={() => router.push("/auth/signin")}
-              className="bg-filmz-orange hover:bg-filmz-orange-hover text-white"
-            >
-              Sign In to Continue
-            </Button>
-          </motion.div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-gradient-filmz">
       <Header />
-
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <motion.section
-          className="text-center mb-12 py-16"
+          className="text-center mb-12 "
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -162,6 +132,7 @@ export default function TopRatedPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
+              className="mt-8"
             >
               <Alert className="mb-8 bg-red-50 border-red-200">
                 <AlertCircle className="h-4 w-4 text-red-600" />
@@ -195,19 +166,13 @@ export default function TopRatedPage() {
               transition={{ duration: 0.5 }}
             >
               <motion.div
-                className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border mb-8"
+                className="mb-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <div className="flex items-center space-x-3">
-                  <Crown className="h-6 w-6 text-filmz-orange-light" />
-                  <h2 className="text-2xl font-bold text-filmz-text-primary">
-                    {getTitle()} ({totalResults.toLocaleString()} total)
-                  </h2>
-                </div>
                 <p className="text-filmz-text-secondary mt-2">
-                  {getDescription()} • Page {currentPage} of {totalPages} • Showing {media.length} items
+                  {getDescription()}
                 </p>
               </motion.div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">

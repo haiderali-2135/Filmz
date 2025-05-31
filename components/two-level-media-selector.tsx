@@ -85,13 +85,12 @@ export default function TwoLevelMediaSelector({
 
   return (
     <motion.div
-      className="mb-6 space-y-4"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
       {/* Media Type Selector */}
-      <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-filmz-border/50 shadow-sm">
+      <div className="">
         <div className="flex gap-4 justify-center">
           {(["movie", "tv"] as MediaType[]).map((mediaType, index) => {
             const config = mediaTypeConfig[mediaType]
@@ -119,16 +118,6 @@ export default function TwoLevelMediaSelector({
                 >
                   <Icon className={`h-5 w-5 ${isSelected ? "text-white" : "text-filmz-orange-light"}`} />
                   <span className="font-medium text-lg">{config.label}</span>
-                  {isSelected && (
-                    <motion.div
-                      className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      ✓
-                    </motion.div>
-                  )}
                 </Button>
               </motion.div>
             )
@@ -137,7 +126,7 @@ export default function TwoLevelMediaSelector({
       </div>
 
       {/* Category Selector */}
-      <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-filmz-border/50 shadow-sm">
+      <div className="p-2">
         <div className="flex flex-wrap gap-2 justify-center">
           {availableCategories.map((category, index) => {
             const config = getCategoryConfig(category)
@@ -159,22 +148,13 @@ export default function TwoLevelMediaSelector({
                   size="sm"
                   className={`relative h-auto px-4 py-2 flex items-center space-x-2 transition-all duration-200 ${
                     isSelected
-                      ? "bg-filmz-orange hover:bg-filmz-orange-hover text-white border-filmz-orange shadow-md"
-                      : "bg-white/60 hover:bg-filmz-orange/5 text-filmz-text-primary border-filmz-border/60 hover:border-filmz-orange-light/50"
+                      ? "bg-gray-800 hover:bg-gray-800 text-white border-filmz-orange shadow-md"
+                      : "bg-white/40 hover:bg-gray-300 text-filmz-text-primary border-filmz-border/60 hover:border-filmz-orange-light/50"
                   }`}
                 >
                   <Icon className={`h-4 w-4 ${isSelected ? "text-white" : "text-filmz-orange-light"}`} />
                   <span className="font-medium text-sm">{config.label}</span>
-                  {isSelected && (
-                    <motion.div
-                      className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      ✓
-                    </motion.div>
-                  )}
+                  
                 </Button>
               </motion.div>
             )

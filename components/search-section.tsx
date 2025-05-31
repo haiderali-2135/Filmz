@@ -37,7 +37,7 @@ export default function SearchSection({ onSearch, isSearching = false }: SearchS
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 1 }}
         >
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex gap-2 sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-filmz-text-secondary" />
               <Input
@@ -53,7 +53,7 @@ export default function SearchSection({ onSearch, isSearching = false }: SearchS
               <Button
                 type="submit"
                 size="lg"
-                className="h-14 px-8 bg-filmz-orange hover:bg-filmz-orange-hover text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                className="h-14 w-14 sm:w-auto sm:px-8 bg-filmz-orange hover:bg-filmz-orange-hover text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center"
                 disabled={isSearching || !searchQuery.trim()}
               >
                 {isSearching ? (
@@ -65,8 +65,8 @@ export default function SearchSection({ onSearch, isSearching = false }: SearchS
                   </motion.div>
                 ) : (
                   <>
-                    <Search className="h-5 w-5 mr-2" />
-                    Search
+                    <Search className="h-5 w-5 sm:mr-2" />
+                    <span className="hidden sm:inline">Search</span>
                   </>
                 )}
               </Button>

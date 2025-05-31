@@ -65,6 +65,7 @@ const config: Config = {
           "card-bg": "#FFFFFF",
           "text-primary": "#2D2D3A",
           "text-secondary": "#6B7280",
+          "bg-lilac": "#a46bf2",
           border: "#E5E7EB",
         },
       },

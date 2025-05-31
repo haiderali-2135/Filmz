@@ -44,7 +44,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange, isLo
 
   return (
     <motion.div
-      className="flex items-center justify-center space-x-2 mt-12 mb-8"
+      className="flex items-center justify-center space-x-2 mt-12"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -104,11 +104,6 @@ export default function Pagination({ currentPage, totalPages, onPageChange, isLo
             </Button>
           </motion.div>
         </div>
-      </div>
-
-      {/* Page Info */}
-      <div className="hidden sm:block text-sm text-filmz-text-secondary bg-white/40 backdrop-blur-sm rounded-lg px-3 py-2 border border-filmz-border">
-        Page {currentPage} of {totalPages}
       </div>
     </motion.div>
   )

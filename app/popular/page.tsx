@@ -168,30 +168,6 @@ export default function PopularPage() {
           onMediaTypeChange={handleMediaTypeChange}
           onCategoryChange={handleCategoryChange}
         />
-
-        {/* Search Results Header */}
-        <AnimatePresence>
-          {isShowingSearchResults && (
-            <motion.div
-              className="mb-8 bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl font-bold mb-2 text-filmz-text-primary">Search Results</h2>
-              <motion.button
-                onClick={() => setSearchResults(null)}
-                className="text-filmz-orange-light hover:text-filmz-orange-hover underline font-medium"
-                whileHover={{ x: -5 }}
-                transition={{ duration: 0.2 }}
-              >
-                ← Back to {getTitle()}
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Error Message */}
         <AnimatePresence>
           {error && (
@@ -231,24 +207,8 @@ export default function PopularPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
+              className="mt-8"
             >
-              <motion.div
-                className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border mb-8"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <h2 className="text-2xl font-bold text-filmz-text-primary">
-                  {isShowingSearchResults
-                    ? `Found ${displayedMedia.length} ${selectedMediaType === "movie" ? "movies" : "shows"}`
-                    : getTitle()}
-                </h2>
-                {!isShowingSearchResults && (
-                  <p className="text-filmz-text-secondary mt-2">
-                    {getDescription()} • Page {currentPage} of {totalPages} • Showing {media.length} items
-                  </p>
-                )}
-              </motion.div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {displayedMedia.map((item, index) => (
                   <MediaCard key={item.id} media={item} mediaType={selectedMediaType} index={index} />

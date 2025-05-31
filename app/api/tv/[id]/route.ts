@@ -2,7 +2,9 @@ import { NextResponse } from "next/server"
 import { tmdbService } from "@/lib/tmdb"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const id = Number.parseInt(params.id)
+  const resolvedParams = await params
+  const Id = await resolvedParams.id
+  const id = Number.parseInt(Id)
 
   if (isNaN(id)) {
     return NextResponse.json({ error: "Invalid TV show ID" }, { status: 400 })

@@ -9,8 +9,11 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Filmz",
   description: "Discover and explore movies with Filmz",
-    generator: 'v0.dev'
+  icons: {
+    icon: '/icon1.png',
+  },
 }
+
 
 export default function RootLayout({
   children,

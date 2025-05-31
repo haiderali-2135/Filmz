@@ -240,7 +240,7 @@ export default function Header() {
                   {session ? (
                     <div className="flex flex-col space-y-2">
                       <span className="text-sm text-filmz-text-secondary">
-                        Welcome, {session.user?.name || session.user?.email}
+                      {session.user?.name || session.user?.email}
                       </span>
                       <Button
                         onClick={() => signOut()}

@@ -151,25 +151,7 @@ export default function TVShowDetailsPage() {
             transition={{ duration: 0.6, delay: 0.4 }}
           >
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-            >
-              <Link href="/" className="inline-block mb-4">
-                <motion.div whileHover={{ x: -5 }} transition={{ duration: 0.2 }}>
-                  <Button
-                    variant="outline"
-                    className="border-filmz-border text-filmz-text-primary hover:bg-filmz-lilac/20 bg-white/80 backdrop-blur-sm"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Home
-                  </Button>
-                </motion.div>
-              </Link>
-            </motion.div>
-
-            <motion.div
-              className="bg-white/80 backdrop-blur-sm rounded-lg p-6 border border-filmz-border"
+              className="bg-white/0 backdrop-blur-sm rounded-lg p-6"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
@@ -273,7 +255,7 @@ export default function TVShowDetailsPage() {
         </div>
 
         {/* Reviews Section */}
-        <ReviewSection movieId={Number.parseInt(showId)} />
+        <ReviewSection mediaId={Number.parseInt(showId)} mediaType="tv" />
 
         {/* Related Shows */}
         <AnimatePresence>
@@ -284,8 +266,7 @@ export default function TVShowDetailsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-filmz-border mb-8">
-                <h2 className="text-2xl font-bold text-filmz-text-primary">Related Shows</h2>
+              <div className="mb-8">
                 <p className="text-filmz-text-secondary mt-2">Shows you might also enjoy</p>
               </div>
 

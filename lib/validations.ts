@@ -18,7 +18,8 @@ export const signInSchema = z.object({
 })
 
 export const reviewSchema = z.object({
-  movieId: z.number().int().positive("Movie ID must be a positive integer"),
+  mediaId: z.number().int().positive("Media ID must be a positive integer"),
+  mediaType: z.enum(["movie", "tv"], { required_error: "Media type must be either 'movie' or 'tv'" }),
   rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
   comment: z.string().max(1000, "Comment must be less than 1000 characters").optional(),
 })

@@ -22,7 +22,7 @@ export default function HomePage() {
   const fetchFeaturedMovies = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/movies/popular?page=1")
+      const response = await fetch("/api/media?type=movie&category=popular&page=1")
       if (response.ok) {
         const data = await response.json()
         // Get first 8 movies for featured section
@@ -42,7 +42,7 @@ export default function HomePage() {
       <main>
         {/* Hero Section */}
         <motion.section
-          className="relative py-20 md:py-32 overflow-hidden"
+          className="relative py-20 md:py-10 overflow-hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
@@ -113,7 +113,7 @@ export default function HomePage() {
 
             {/* Stats */}
             <motion.div
-              className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
+              className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.8 }}
@@ -127,11 +127,6 @@ export default function HomePage() {
                 <Star className="h-8 w-8 text-filmz-orange-light mx-auto mb-3" />
                 <h3 className="text-2xl font-bold text-filmz-text-primary mb-2">Reviews</h3>
                 <p className="text-filmz-text-secondary">Share your thoughts and ratings</p>
-              </div>
-              <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-filmz-border">
-                <Users className="h-8 w-8 text-filmz-orange-light mx-auto mb-3" />
-                <h3 className="text-2xl font-bold text-filmz-text-primary mb-2">Community</h3>
-                <p className="text-filmz-text-secondary">Connect with fellow film lovers</p>
               </div>
             </motion.div>
           </div>
