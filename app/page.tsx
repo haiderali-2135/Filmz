@@ -35,6 +35,8 @@ export default function HomePage() {
     }
   }
 
+
+  //defi afsdadf 
   return (
     <div className="min-h-screen bg-gradient-filmz">
       <Header />
